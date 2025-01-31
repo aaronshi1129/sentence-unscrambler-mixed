@@ -1,0 +1,374 @@
+<html><head><base href="https://unpkg.com/">
+<meta charset="UTF-8">
+<title>Sentence Unscrambling Challenge</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: white;
+    color: white;
+    padding: 20px;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+    max-width: 800px;
+    width: 90%;
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    opacity: 0.9;
+}
+
+.scrambled-words {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.word {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    user-select: none;
+}
+
+.word:hover {
+    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.word.selected {
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(0.95);
+}
+
+.answer-area {
+    min-height: 50px;
+    margin: 20px 0;
+    padding: 10px;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+}
+
+button {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    padding: 10px 20px;
+    color: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s;
+    margin: 5px;
+}
+
+button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.score {
+    font-size: 1.2rem;
+    margin: 20px 0;
+}
+
+.feedback {
+    height: 30px;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+.author-info {
+    margin-top: 20px;
+    font-size: 0.8rem;
+    opacity: 0.7;
+    text-align: center;
+}
+
+@keyframes celebrate {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.celebrate {
+    animation: celebrate 0.5s ease-in-out;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    text-align: center;
+    color: black;
+    max-width: 500px;
+    width: 90%;
+}
+
+.modal-content img {
+    margin: 20px 0;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.close-modal {
+    margin-top: 20px;
+    background: #1a2a6c;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    border: none;
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>GAS Sentence Unscrambling Challenge</h1>
+    <p class="subtitle">Finish 5 sentence unscrambling tasks and earn a Pokemon!</p>
+    <p class="score">Score: <span id="score">0</span></p>
+    <div class="feedback" id="feedback"></div>
+    <div class="scrambled-words" id="scrambledWords"></div>
+    <div class="answer-area" id="answerArea"></div>
+    <button id="checkButton">Check Answer</button>
+    <button id="nextButton">Skip This Sentence</button>
+    <div class="author-info">
+        Author: Aaron Shi<br>
+        Released in 2024.<br>
+        Last update on November 24, 2024.
+    </div>
+</div>
+
+<div class="modal" id="victoryModal">
+    <div class="modal-content">
+        <h2>Congratulations!</h2>
+        <p>You've completed this sentence unscrambling challenge, and you've won this Pokemon!</p>
+        <div id="pokemonImage"></div>
+        <button class="close-modal" onclick="closeModal()">Play Again</button>
+    </div>
+</div>
+
+<script>
+const sentences = [
+    "The cat sat on the mat",
+    "I love to play video games",
+    "She reads books every day",
+    "Winter is coming soon",
+    "Migratory birds fly south for winter",
+    "The sun rises in the east",
+    "Children like to play in the park",
+    "Time flies when having fun",
+    "I can still recall my first crash-and-burn moment in school",
+    "I didn't take the task seriously and skipped several group meetings",
+    "I ruined the presentation and felt embarrassed in front of my classmates",
+    "We got a very low grade, and I felt depressed about letting the team down",
+    "You inspire me to connect with others and to communicate better",
+    "When my friends and I hang out, I turn to you for Instagram updates and ignore everyone else",
+    "My parents are both angry and disappointed with me",
+    "Brown bears hibernate and that goldfish sleep without closing their eyes",
+    "To avoid floating away, they lock their little paws together and hold on to each other",
+    "According to studies, the birds may be able to stay in the air for up to two hundred days",
+    "When one half of their brain goes to sleep, the other half stays awake to help them swim and breathe",
+    "Due to their keen sense of smell, the dogs can detect infected trees",
+    "The dogs are then taught to perform a certain kind of behavior as an alert when they come across these smells",
+    "Once their training is complete, sniffer dogs are assigned to carry out specific duties",
+    "some kids came along, bought some snacks, and took me along to the beach for a picnic",
+    "When it was getting dark, they packed everything up and let me stay there alone",
+    "I floated helplessly in the water for a while, but soon realized I wasn't alone",
+    "Because of all the littering, a lot of plastic products end up in the ocean",
+    "Even though it was a rainy day in New York City, close to a million people were out for their first look at the city's newest addition on Bedloe's Island",
+    "Over time, this outer layer has been exposed to the air and oxidized so much that it has turned green",
+    "As always, Lady Liberty stands tall and proud",
+    "Smart shop owners usually place their most profitable and popular items at the average shopper's eye level to make sure that those items are most likely to be seen",
+    "Customers are lining up at cash registers to pay for their things anyway",
+    "These customers might start off with just a beverage",
+    "Shops take advantage of this opportunity by setting up bar-style seating areas",
+    "These are displayed near cash registers and are thus easily noticed and within quick reach",
+    "It comes in all shapes and sizes",
+    "The gun represents violence, whereas the flower stands for peace",
+    "It is nothing but visual pollution",
+    "A lot of money and effort are needed to get rid of it",
+    "Which side of the wall are you on when it comes to graffiti",
+    "Garbage trucks rolled into the landfill and unloaded tons of trash",
+    "People in the slum then looked through the trash for things they could recycle or sell",
+    "This was how they made a living",
+    "She really looked forward to the lessons",
+    "She wanted to learn how to play the violin and be carried away by the power of music",
+    "Screeches came out of the instruments",
+    "As soon as the orchestra began to play, everyone cheered",
+    "Most people have habits or behaviors that they would like to change for the better",
+    "How can we make people more eager to take action and make positive changes",
+    "A car company put up a new kind of traffic light at an intersection in Lisbon",
+    "Thanks to this creative idea, more pedestrians began to follow the law",
+    "An experiment was conducted with the goal of having people use the stairs rather than the escalator",
+    "These depressing sights tore at his heart",
+    "His efforts finally paid off when he completed his masterpiece"
+];
+
+let currentSentence = "";
+let selectedWords = [];
+let score = 0;
+let hasScored = false;
+
+async function showVictoryModal() {
+    const modal = document.getElementById("victoryModal");
+    const pokemonId = Math.floor(Math.random() * 898) + 1;
+    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`);
+    const data = await response.json();
+    
+    const pokemonImageDiv = document.getElementById("pokemonImage");
+    const img = document.createElement("img");
+    img.src = data.sprites.other["official-artwork"].front_default;
+    img.alt = `${data.name} Pokemon artwork`;
+    img.width = 300;
+    img.height = 300;
+    
+    pokemonImageDiv.innerHTML = "";
+    pokemonImageDiv.appendChild(img);
+    modal.style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById("victoryModal").style.display = "none";
+    resetGame();
+}
+
+function scrambleWords(sentence) {
+    return sentence.split(" ")
+        .map(word => ({word, sort: Math.random()}))
+        .sort((a, b) => a.sort - b.sort)
+        .map(({word}) => word);
+}
+
+function updateDisplay() {
+    const scrambledWordsDiv = document.getElementById("scrambledWords");
+    const answerAreaDiv = document.getElementById("answerArea");
+    
+    scrambledWordsDiv.innerHTML = "";
+    currentScrambled.forEach((word, index) => {
+        if (!selectedWords.includes(index)) {
+            const wordDiv = document.createElement("div");
+            wordDiv.className = "word";
+            wordDiv.textContent = word;
+            wordDiv.dataset.index = index;
+            scrambledWordsDiv.appendChild(wordDiv);
+        }
+    });
+    
+    answerAreaDiv.innerHTML = "";
+    selectedWords.forEach((wordIndex) => {
+        const wordDiv = document.createElement("div");
+        wordDiv.className = "word";
+        wordDiv.textContent = currentScrambled[wordIndex];
+        wordDiv.dataset.index = wordIndex;
+        answerAreaDiv.appendChild(wordDiv);
+    });
+}
+
+function checkAnswer() {
+    const currentAnswer = selectedWords.map(index => currentScrambled[index]).join(" ");
+    const feedback = document.getElementById("feedback");
+    
+    if (currentAnswer === currentSentence) {
+        if (!hasScored) {
+            score += 10;
+            document.getElementById("score").textContent = score;
+            hasScored = true;
+        }
+        feedback.textContent = "Correct! +10 points";
+        feedback.style.color = "#00ff00";
+        document.querySelector(".container").classList.add("celebrate");
+        setTimeout(() => {
+            document.querySelector(".container").classList.remove("celebrate");
+        }, 500);
+        
+        if (score >= 50) {  
+            showVictoryModal();
+        } else {
+            setTimeout(newSentence, 2000);
+        }
+    } else {
+        feedback.textContent = "Try again!";
+        feedback.style.color = "#ff0000";
+    }
+}
+
+function newSentence() {
+    currentSentence = sentences[Math.floor(Math.random() * sentences.length)];
+    currentScrambled = scrambleWords(currentSentence);
+    selectedWords = [];
+    hasScored = false;
+    document.getElementById("feedback").textContent = "";
+    updateDisplay();
+}
+
+function resetGame() {
+    score = 0;
+    hasScored = false;
+    document.getElementById("score").textContent = score;
+    newSentence();
+}
+
+let currentScrambled = [];
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("scrambledWords").addEventListener("click", (e) => {
+        if (e.target.classList.contains("word")) {
+            const index = parseInt(e.target.dataset.index);
+            if (!selectedWords.includes(index)) {
+                selectedWords.push(index);
+                updateDisplay();
+            }
+        }
+    });
+
+    document.getElementById("answerArea").addEventListener("click", (e) => {
+        if (e.target.classList.contains("word")) {
+            const index = parseInt(e.target.dataset.index);
+            selectedWords = selectedWords.filter(i => i !== index);
+            updateDisplay();
+        }
+    });
+
+    document.getElementById("checkButton").addEventListener("click", checkAnswer);
+    document.getElementById("nextButton").addEventListener("click", newSentence);
+
+    resetGame();
+});
+</script>
+</body></html>

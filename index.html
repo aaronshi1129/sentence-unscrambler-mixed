@@ -27,10 +27,10 @@ body {
 }
 
 .container {
-    position: absolute; /* Added for perfect centering */
-    top: 50%; /* Added for perfect centering */
-    left: 50%; /* Added for perfect centering */
-    transform: translate(-50%, -50%); /* Added for perfect centering */
+    position: relative; /* Changed from absolute to fix modal z-index issue */
+    top: 0; /* Removed absolute positioning */
+    left: 0; /* Removed absolute positioning */
+    transform: none; /* Removed absolute positioning */
     background: rgba(26, 42, 108, 0.85);
     backdrop-filter: blur(10px);
     padding: 2rem;
@@ -39,6 +39,7 @@ body {
     text-align: center;
     max-width: 800px;
     width: 90%;
+    margin: 0 auto; /* Added for centering */
 }
 
 .subtitle {
@@ -118,8 +119,10 @@ button:hover {
 }
 
 @keyframes celebrate {
-    0% { transform: scale(1) translate(-50%, -50%); }
-    50% { transform: scale(1.1) translate(-50%, -50%); }
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+} /* Fixed missing closing brace */
 
 .celebrate {
     animation: celebrate 0.5s ease-in-out;
@@ -135,7 +138,7 @@ button:hover {
     background: rgba(0, 0, 0, 0.8);
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 1000; /* Explicitly set high z-index to ensure visibility */
 }
 
 .modal-content {
@@ -146,6 +149,7 @@ button:hover {
     color: black;
     max-width: 500px;
     width: 90%;
+    z-index: 1001; /* Ensure content is above modal background */
 }
 
 .modal-content img {
@@ -167,7 +171,7 @@ button:hover {
 </head>
 <body>
 <div class="container">
-    <h1>Sentence Unscrambler (General)</h1>
+    <h1>Sentence Unscrambler</h1>
     <p class="subtitle">Finish 5 sentence unscrambling tasks and earn a Pokemon!</p>
     <p class="score">Score: <span id="score">0</span></p>
     <div class="feedback" id="feedback"></div>
@@ -177,8 +181,7 @@ button:hover {
     <button id="nextButton">Skip This Sentence</button>
     <div class="author-info">
         Author: Aaron Shi<br>
-        Released in 2024.<br>
-        Last update on November 24, 2024.
+        Released in 2025.<br>
     </div>
 </div>
 
@@ -219,10 +222,8 @@ const sentences = [
     "When it was getting dark, they packed everything up and let me stay there alone",
     "I floated helplessly in the water for a while, but soon realized I wasn't alone",
     "Because of all the littering, a lot of plastic products end up in the ocean",
-    "Even though it was a rainy day in New York City, close to a million people were out for their first look at the city's newest addition on Bedloe's Island",
     "Over time, this outer layer has been exposed to the air and oxidized so much that it has turned green",
     "As always, Lady Liberty stands tall and proud",
-    "Smart shop owners usually place their most profitable and popular items at the average shopper's eye level to make sure that those items are most likely to be seen",
     "Customers are lining up at cash registers to pay for their things anyway",
     "These customers might start off with just a beverage",
     "Shops take advantage of this opportunity by setting up bar-style seating areas",
@@ -247,7 +248,6 @@ const sentences = [
     "These depressing sights tore at his heart",
     "His efforts finally paid off when he completed his masterpiece"
 ];
-
 let currentSentence = "";
 let selectedWords = [];
 let score = 0;
